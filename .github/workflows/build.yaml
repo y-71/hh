@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.5
+
+      - name: Build
+        run: go build -o hh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: hh-artifact
+          path: hh
+
+      - name: Archive source code
+        uses: actions/upload-artifact@v2
+        with:
+          name: source-code
+          path: .
