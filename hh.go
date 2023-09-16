@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -39,6 +40,15 @@ func serveDirectory(w http.ResponseWriter, r *http.Request, dir string) {
 
 	// Log the incoming request with the response code in green
 	log.Printf(color.GreenString("Received request: %s %s - Status: %d"), r.Method, r.URL.Path, http.StatusOK)
+	
+	// Get the file's modification time
+	fileInfo, _ := file.Stat()
+	modTime := fileInfo.ModTime()
+	
+	// Set caching headers to disable caching
+	w.Header().Set("Cache-Control", "no-store, max-age=0") // No caching
+	w.Header().Set("Pragma", "no-cache")                   // No caching (for older browsers)
+	w.Header().Set("Expires", modTime.Add(-time.Hour).Format(time.RFC1123)) // Expire in the past
 
 	// Serve the file as the response
 	http.ServeFile(w, r, filePath)
