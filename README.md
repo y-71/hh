@@ -2,7 +2,9 @@
 
 easily serve `dirs`
 
-use 
-
+use: 
+- to serve local directory
+`hh`
+- to define the directory you would like to serve
 `hh -dir <DIRECTORY>`
 
