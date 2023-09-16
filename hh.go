@@ -45,8 +45,14 @@ func serveDirectory(w http.ResponseWriter, r *http.Request, dir string) {
 }
 
 func main() {
+	// load the current directory
+	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+            log.Fatal(err)
+    }
+	
 	// Parse command-line arguments
-	dir := flag.String("dir", ".", "Directory to serve files from")
+	dir := flag.String("dir", currentDir, "Directory to serve files from")
 	basePort := flag.Int("port", 8080, "Base port to listen on")
 	flag.Parse()
 
