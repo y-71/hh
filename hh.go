@@ -2,13 +2,27 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/fatih/color"
 )
+
+func findAvailablePort(basePort int) (int, error) {
+	for port := basePort; port < basePort+100; port++ {
+		address := fmt.Sprintf(":%d", port)
+		ln, err := net.Listen("tcp", address)
+		if err == nil {
+			ln.Close()
+			return port, nil
+		}
+	}
+	return 0, fmt.Errorf("no available ports in the range %d-%d", basePort, basePort+100)
+}
 
 func serveDirectory(w http.ResponseWriter, r *http.Request, dir string) {
 	// Build the file path from the request's URL and the provided directory
@@ -33,14 +47,15 @@ func serveDirectory(w http.ResponseWriter, r *http.Request, dir string) {
 func main() {
 	// Parse command-line arguments
 	dir := flag.String("dir", ".", "Directory to serve files from")
-	addr := flag.String("addr", ":8080", "Address to listen on")
+	basePort := flag.Int("port", 8080, "Base port to listen on")
 	flag.Parse()
 
 	// Set up logging with colors
 	log.SetFlags(0)
 
-	// Validate the provided directory
-	if _, err := os.Stat(*dir); err != nil {
+	// Find an available port
+	port, err := findAvailablePort(*basePort)
+	if err != nil {
 		log.Fatalf(color.RedString("Error: %v"), err)
 	}
 
@@ -50,9 +65,10 @@ func main() {
 	})
 
 	// Start the HTTP server
+	serverAddr := fmt.Sprintf(":%d", port)
 	log.Printf(color.BlueString("Starting server... Serving directory: %s"), *dir)
-	log.Printf(color.BlueString("Listening on http://localhost%s"), *addr)
-	if err := http.ListenAndServe(*addr, nil); err != nil {
+	log.Printf(color.BlueString("Listening on http://localhost%s"), serverAddr)
+	if err := http.ListenAndServe(serverAddr, nil); err != nil {
 		log.Fatalf(color.RedString("Server error: %v"), err)
 	}
 }
